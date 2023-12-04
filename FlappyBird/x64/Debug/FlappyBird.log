@@ -1,0 +1,12 @@
+﻿  main.cpp
+C:\dev\FlappyBird\FlappyBird\main.cpp(101,28): warning C4244: '=': conversion from 'T' to 'float', possible loss of data
+          with
+          [
+              T=unsigned int
+          ]
+C:\dev\FlappyBird\FlappyBird\main.cpp(242,69): warning C4244: 'argument': conversion from 'T' to 'float', possible loss of data
+          with
+          [
+              T=unsigned int
+          ]
+  FlappyBird.vcxproj -> C:\dev\FlappyBird\x64\Debug\FlappyBird.exe
