@@ -5,9 +5,16 @@
 using namespace std;
 
 int score;
-bool gameRunning, gameOvered;
+bool gameRunning, gameOvered, won;
 float delta;
 sf::RenderWindow* window;
+
+string currentGoal = "Matematika";
+string previousGoal = "";
+
+const char* startGameMessage = "Krenite sa\n polaganjem";
+const char* wonGameMessage = "Cestitamo!\n Diplomirali ste";
+
 
 sf::Texture* backgroundTexture;
 class Bird {
@@ -21,7 +28,7 @@ private:
 public:
 	Bird() {
 		animationClock = new sf::Clock;
-		
+
 		for (const auto& path : {
 			"res/textures/bird/1-2.png",
 			"res/textures/bird/1-3.png",
@@ -29,16 +36,16 @@ public:
 			"res/textures/bird/1-1.png",
 			}) {
 			auto frame = new sf::Texture();
-				frame->loadFromFile(path);
-				frames.push_back(frame);
-			}
+			frame->loadFromFile(path);
+			frames.push_back(frame);
+		}
 		texture = frames[0];
 
 		y = 400;
 		vel = 0;
 	}
 
-	~Bird(){
+	~Bird() {
 		for (const auto& ptr : frames) {
 			delete ptr;
 		}
@@ -69,7 +76,7 @@ public:
 	void update() {
 		currentFrame += delta * 4;
 		if (currentFrame > frames.size()) {
-			currentFrame-=frames.size();
+			currentFrame -= frames.size();
 		}
 		texture = frames[(int)currentFrame];
 		if (gameRunning) {
@@ -99,7 +106,7 @@ private:
 public:
 	Pipe() {
 		x = (window->getSize().x + upperPipe->getSize().x);
-		y = 100.0f + (float)(rand()%5 - 3) * 50;
+		y = 100.0f + (float)(rand() % 5 - 3) * 50;
 		scored = false;
 	}
 
@@ -119,7 +126,7 @@ public:
 		};
 	}
 
-	void draw() const{
+	void draw() const {
 		sf::Sprite upperSprite(*upperPipe);
 		upperSprite.setPosition(x, y + 340);
 		sf::Sprite lowerSprite(*lowerPipe);
@@ -149,11 +156,13 @@ public:
 vector<Pipe*> pipes;
 
 sf::Texture* groundTexture;
+sf::Texture* TitleScreenTexture;
+sf::Texture* gameOverTexutre;
 sf::Clock* pipeGeneratingClock;
 
 sf::Font* font;
 void setup() {
-	srand((unsigned int) time(nullptr));
+	srand((unsigned int)time(nullptr));
 	pipeGeneratingClock = new::sf::Clock;
 
 	font = new sf::Font();
@@ -207,6 +216,8 @@ void update() {
 			}
 		}
 	}
+
+
 }
 
 void handleEvent(sf::Event& event) {
@@ -239,6 +250,31 @@ void draw() {
 		}
 	}
 
+	sf::Text startGameText(startGameMessage, *font);
+	startGameText.setPosition(window->getSize().x / 2 - startGameText.getLocalBounds().width / 2, window->getSize().y / 2 - startGameText.getLocalBounds().height);
+	if (not gameRunning && not won) {
+		window->draw(startGameText);
+	}
+
+	sf::Text gameOverText(" Ispit zavrsen!\n Polozili ste ispit: \n " + previousGoal + ". \n \n Prijavite sledeci ispit!", *font);
+	gameOverText.setPosition(window->getSize().x / 2 - gameOverText.getLocalBounds().width / 2, window->getSize().y / 2 - gameOverText.getLocalBounds().height);
+	sf::Text gameOverNoGoles("Pali ste ispit!", *font);
+	gameOverNoGoles.setPosition(window->getSize().x / 2 - gameOverNoGoles.getLocalBounds().width / 2, window->getSize().y / 2 - gameOverNoGoles.getLocalBounds().height);
+	if (gameOvered) {
+		if (score < 5) {
+			window->draw(gameOverNoGoles);
+		}
+		else {
+			window->draw(gameOverText);
+		}
+	}
+
+	sf::Text gameWonText(wonGameMessage, *font);
+	gameWonText.setPosition(window->getSize().x / 2 - gameWonText.getLocalBounds().width / 2, window->getSize().y / 2 - gameWonText.getLocalBounds().height);
+	if (won) {
+		window->draw(gameWonText);
+	}
+
 	groundSprite.setPosition(groundOffset, backgroundTexture->getSize().y);
 	window->draw(groundSprite);
 
@@ -252,9 +288,41 @@ void draw() {
 
 	bird->draw();
 
-	sf::Text scoreText("Score: "+to_string(score), *font);
-	scoreText.setPosition(window->getSize().x / 2 - scoreText.getLocalBounds().width / 2, 5);
+	sf::Text scoreText("Poeni: " + to_string(score), *font);
+	scoreText.setPosition(window->getSize().x - 310 - scoreText.getLocalBounds().width, 665);
 	window->draw(scoreText);
+
+	sf::Text goalText("", *font);
+
+	if (score < 5) {
+		currentGoal = "Matematika";
+	}
+	if (score >= 5) {
+		currentGoal = "Fizika";
+		previousGoal = "Matematika";
+	}
+	if (score >= 10) {
+		currentGoal = "Web programiranje";
+		previousGoal = "Fizika";
+	}
+	if (score >= 20) {
+		currentGoal = "Programski jezici";
+		previousGoal = "Web programiranje";
+		goalText.setCharacterSize(23);
+	}
+
+	if (score == 30) {
+		currentGoal = "Zavrsni rad";
+		previousGoal = "Programski jezici";
+		gameRunning = false;
+		won = true;
+	}
+
+	string nextGoal = "Ispit: ";
+	goalText.setString(nextGoal + currentGoal);
+	goalText.setPosition(15, 5);
+	window->draw(goalText);
+
 }
 
 int main() {
